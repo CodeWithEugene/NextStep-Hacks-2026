@@ -75,7 +75,9 @@ flowchart LR
 * **Satellites:** VIIRS (Suomi NPP, NOAA-20, NOAA-21) 375m resolution + MODIS (Terra/Aqua) 1km.
 * **Live Endpoint:** `https://firms.modaps.eosdis.nasa.gov/api/area/csv/[MAP_KEY]/VIIRS_SNPP_NRT/[BBOX]/[DAYS]`
 * **Open Map Key:** NASA FIRMS provides instant free MAP_KEY registration at `https://firms.modaps.eosdis.nasa.gov/api/map_key/`.
-* **Public Fallback & Seed Data:** To ensure zero downtime or network latency during the 3-minute hackathon demo video, pre-cached high-resolution historical wildfire scenarios (e.g., Pine Ridge, Camp Fire, Marshall Fire) are bundled in `lib/data/scenarios/*.json`.
+* **Route Handler:** `GET /api/firms?incidentId=&days=1&radiusDeg=0.25` (`app/api/firms/route.ts`). With `FIRMS_MAP_KEY` set it pulls live VIIRS NOAA-20 NRT pixels for the incident bounding box and parses the CSV into typed `ThermalHotspot[]`; without a key (or with zero detections) it serves the bundled scenario hotspots and labels the response `source: "scenario_cache"`.
+* **Enable live ingestion (2 minutes, user action):** request a free key at `https://firms.modaps.eosdis.nasa.gov/api/map_key/`, then `vercel env add FIRMS_MAP_KEY production preview development` and redeploy.
+* **Bundled Scenario Data:** Three fictional incidents placed on real terrain (`lib/scenarios/*.ts`): San Gabriel Canyon / Azusa WUI, Mount Diablo foothills, El Dorado foothills. Every route starts `PENDING` so the live Jev `Score` visibly turns it red or green.
 
 ### 2.3 Open-Meteo & NOAA Weather API
 * **Purpose:** Real-time wind speed (mph/kmh), wind gusts, wind azimuth direction (0–360°), relative humidity (%), ambient temperature (°F/°C).
@@ -89,9 +91,13 @@ flowchart LR
 * **Access / Credentials:** **100% Free, Public Domain, ZERO API Key Required.**
 
 ### 2.5 Map Tiles & Cartography Engine
-* **Renderer:** MapLibre GL JS / Leaflet (Vector and raster mapping).
-* **Tileset:** CartoDB Dark Matter (`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png`) or OpenStreetMap.
-* **Access / Credentials:** Free, open-source cartography with zero API keys or credit cards needed.
+* **Renderer:** Leaflet 1.9 (`components/map/leaflet-map.tsx`), loaded client-side only via `next/dynamic({ ssr: false })`.
+* **Ops basemap (default):** Esri World Dark Gray Canvas base + reference labels  
+  `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}`  
+  `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`
+* **Terrain basemap (toggle):** OpenTopoMap `https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png` for reading slope, canyons and chimney alignment.
+* **Access / Credentials:** Both are free and keyless with attribution (rendered in the map footer). CARTO Dark Matter was dropped during the build because CARTO now watermarks keyless tiles with "API KEY REQUIRED".
+* **Overlays (all vector, zero cost):** fire perimeter polygon (current + time-projected), NASA FIRMS hotspot circles sized by FRP, evacuation corridors (red / amber / green / slate-pending), critical-asset and shelter markers, verified ground-report pins.
 
 ### 2.6 Vercel Hosting & Deployment
 * **Project Dashboard:** [https://vercel.com/eugene-gabriel/next-step-hacks-2026](https://vercel.com/eugene-gabriel/next-step-hacks-2026)
@@ -256,89 +262,70 @@ A common failure mode in hackathons is building an interface that looks good on 
 
 ---
 
-## 5. End-to-End File Tree Breakdown
+## 5. End-to-End File Tree Breakdown (as built)
 
 ```
 NextStep-Hacks-2026/
 ├── app/
-│   ├── layout.tsx                     # Global Root Layout (Geist Font, Dark Theme, Providers)
-│   ├── page.tsx                       # Main Tactical Incident Command Center
-│   ├── globals.css                    # Tailwind v4 / CSS Variables & Shadcn Theme Tokens
+│   ├── layout.tsx                     # Root layout: Geist Sans/Mono, dark theme, Leaflet CSS, metadata, skip link
+│   ├── page.tsx                       # Renders <CommandCenter />
+│   ├── icon.svg                       # Flame-shield favicon
+│   ├── globals.css                    # Tailwind v4 + tw-animate-css, shadcn HSL tokens bridged via @theme inline,
+│   │                                  #   accessibility classes, Leaflet dark skin, print styles for ICS-209
 │   └── api/
 │       ├── jev/
-│       │   ├── verify/route.ts        # POST: Noul Incident Ground-Truth Verification
-│       │   ├── corridor/route.ts      # POST: Score 5-Level Evacuation Road Hazard
-│       │   └── dispatch/route.ts      # POST: Choice Tactical Resource Allocation
-│       ├── weather/route.ts           # GET: Open-Meteo live proxy with caching
-│       └── firms/route.ts             # GET: NASA FIRMS active fire pixels endpoint
+│       │   ├── verify/route.ts        # POST Noul x2: report credibility + roadway hazard
+│       │   ├── corridor/route.ts      # POST Score: one 5-level question per corridor, single Jev request
+│       │   ├── dispatch/route.ts      # POST Choice x3: tactical action, priority asset, protective posture
+│       │   └── chat/route.ts          # POST Choice (intent) + Choice (referenced route) + Noul (immediate danger)
+│       ├── ussd/route.ts              # Africa's Talking callback; menus 2 & 3 call Jev live under a 3.5 s budget
+│       ├── weather/route.ts           # Open-Meteo proxy (mph, °F) with scenario fallback, 5-min revalidate
+│       └── firms/route.ts             # NASA FIRMS VIIRS NRT ingestion (needs FIRMS_MAP_KEY) with cached fallback
 ├── components/
-│   ├── ui/                            # 100% Authentic Official Shadcn UI Components
-│   │   ├── button.tsx
-│   │   ├── badge.tsx
-│   │   ├── card.tsx
-│   │   ├── alert.tsx
-│   │   ├── sheet.tsx
-│   │   ├── tabs.tsx
-│   │   ├── slider.tsx
-│   │   ├── progress.tsx
-│   │   ├── dialog.tsx
-│   │   ├── select.tsx
-│   │   ├── separator.tsx
-│   │   ├── tooltip.tsx
-│   │   ├── scroll-area.tsx
-│   │   ├── table.tsx
-│   │   └── chart.tsx                  # Shadcn Recharts Container & Tooltips
+│   ├── command-center.tsx             # Client orchestrator: scenario state, auto-run pipeline, layout, modals
+│   ├── ui/                            # Official shadcn/ui primitives (Radix + Tailwind)
+│   │   ├── alert.tsx  badge.tsx  button.tsx  card.tsx  chart.tsx (Recharts 3)  dialog.tsx  progress.tsx
+│   │   ├── scroll-area.tsx  select.tsx  separator.tsx  sheet.tsx  slider.tsx  table.tsx  tabs.tsx  tooltip.tsx
 │   ├── map/
-│   │   ├── tactical-map.tsx           # Interactive MapLibre / Leaflet Map Container
-│   │   ├── perimeter-polygon.tsx      # Dynamic fire front expansion polygon
-│   │   ├── hotspot-markers.tsx        # NASA VIIRS/MODIS thermal cluster points
-│   │   ├── route-overlay.tsx          # Green (Safe) and Red (Impassable) path polylines
-│   │   └── wind-vector-hud.tsx        # Animated arrow showing wind spread azimuth
+│   │   ├── tactical-map.tsx           # Dynamic Leaflet wrapper + HUD overlays (wind dial, layers, zoom, basemap, legend)
+│   │   ├── leaflet-map.tsx            # Leaflet core: basemaps, perimeter, hotspots, corridors, assets, shelter, reports
+│   │   └── map-icons.ts               # divIcon HTML for assets / route glyphs / reports / shelter
 │   ├── hud/
-│   │   ├── incident-header.tsx        # Incident Name, Containment %, Red Flag Status
-│   │   ├── telemetry-cards.tsx        # Wind, Temp, Humidity, FRP metric cards
-│   │   ├── spread-chart.tsx           # Shadcn AreaChart of Rate of Spread vs Time
-│   │   ├── corridor-risk-chart.tsx    # Shadcn BarChart of Jev Level 1-5 probabilities
-│   │   └── infrastructure-table.tsx   # Critical public facilities exposure list
+│   │   ├── incident-header.tsx        # Brand, red-flag badge, scenario Select, ICS-209 + USSD buttons
+│   │   ├── emergency-banner.tsx       # shadcn Alert (emergency / advisory / safe / pending) with aria-live
+│   │   ├── telemetry-cards.tsx        # Wind, FRP, RH, containment cards with Tooltips
+│   │   ├── timeline-slider.tsx        # shadcn Slider: perimeter projection T+0…6 h
+│   │   ├── spread-chart.tsx           # shadcn AreaChart: acres + FRP timeline
+│   │   ├── corridor-risk-chart.tsx    # shadcn BarChart: Jev 5-level probability mass for selected corridor
+│   │   ├── routes-panel.tsx           # Corridor list with status Badges + hazard Progress
+│   │   ├── ground-reports.tsx         # Report feed with Noul verification badges
+│   │   └── infrastructure-table.tsx   # shadcn Table of threatened assets
 │   ├── jev/
-│   │   ├── jev-decision-stream.tsx    # Live feed of System One judgments
-│   │   ├── judgment-card.tsx          # Card displaying Noul/Score/Choice output
-│   │   └── trigger-evaluation-btn.tsx # Trigger button running live Jev arbitration
-│   ├── mobile/
-│   │   ├── mobile-drawer.tsx          # Slide-up Shadcn Sheet for mobile viewports
-│   │   └── emergency-action-bar.tsx   # Floating mobile action pill
-│   └── report/
-│       ├── ics209-modal.tsx           # Official Federal Incident Summary generator
-│       └── report-export-view.tsx     # Clean printable/downloadable situational report
+│   │   ├── trigger-evaluation-btn.tsx # Phase-aware run / re-run button
+│   │   ├── dispatch-card.tsx          # Choice result: posture, action, priority asset, distribution bars
+│   │   └── jev-decision-stream.tsx    # Live log of typed judgments with confidence, latency, source
+│   ├── report/
+│   │   ├── ics209-modal.tsx           # ICS-209 dossier (Table blocks) with copy / download .md / print
+│   │   └── citizen-report-dialog.tsx  # "Report smoke" Dialog → Jev Noul verification → map pin
+│   ├── ussd/ussd-simulator-modal.tsx  # Feature-phone simulator posting real AT payloads to /api/ussd
+│   ├── mobile/mobile-drawer.tsx       # shadcn Sheet (bottom) with Tabs: Telemetry | Routes | Jev
+│   ├── chat/tactical-chatbot.tsx      # Floating Jev-routed assistant (bottom-right)
+│   └── accessibility/accessibility-widget.tsx  # Floating a11y suite (bottom-right)
+├── hooks/use-jev-evaluation.ts        # Noul → Score → Choice pipeline, decision log, report submission
 ├── lib/
-│   ├── types/
-│   │   ├── incident.ts                # TypeScript interfaces for Incident, Weather, Hotspots
-│   │   ├── jev.ts                     # TypeSafe Jev input state and response schemas
-│   │   └── routes.ts                  # Evacuation corridor geometric and risk types
-│   ├── jev-client.ts                  # Server-side TypeSafe Jev SDK wrapper with retry logic
-│   ├── weather-service.ts             # Open-Meteo & NOAA client
-│   ├── firms-service.ts               # NASA FIRMS data processor
-│   ├── scenarios/
-│   │   ├── index.ts                   # Scenario registry
-│   │   ├── pine-ridge-fire.ts         # High-threat WUI wildfire scenario (Primary demo)
-│   │   ├── diablo-canyon-fire.ts      # Fast canyon chimney spread scenario
-│   │   └── sierra-ridge-fire.ts       # Timber ridge & watershed threat scenario
-│   └── utils.ts                       # Standard shadcn `cn()` helper (clsx + tw-merge)
-├── docs/
-│   ├── info.md                        # Hackathon rules, deadlines, prizes, and contacts
-│   ├── problem+solution.md            # Winning project thesis, problem statement & pitch
-│   └── build.md                       # THIS FILE: Complete master engineering build spec
-├── public/
-│   ├── icons/                         # SVG icons for air tankers, dozers, hot-spots
-│   └── mockups/                       # Visual assets
-├── components.json                    # Shadcn configuration manifest
-├── package.json                       # Dependencies and build scripts
-├── tsconfig.json                      # TypeScript compiler configuration
-├── tailwind.config.ts                 # Tailwind configuration with shadcn animations
-└── vercel.json                        # Vercel deployment configuration
+│   ├── jev-client.ts                  # Server-only TypeSafeClient (6 s timeout, 1 retry) + timing helper
+│   ├── server/jev-ops.ts              # verifyGroundReport / scoreCorridors / arbitrateDispatch (+ heuristic fallbacks)
+│   ├── geo.ts                         # haversine, bearing, wind alignment, perimeter projection, compass labels
+│   ├── alert-text.ts                  # Emergency banner + TTS sentence builder
+│   ├── ics209.ts                      # ICS-209 block builder + Markdown export
+│   ├── types/{incident,jev}.ts        # Domain + Jev response types
+│   ├── scenarios/{index,pine-ridge-fire,diablo-canyon-fire,sierra-ridge-fire}.ts
+│   └── utils.ts                       # shadcn cn()
+├── scripts/smoke-test.mjs             # 12 end-to-end checks against any base URL (pnpm smoke)
+├── docs/{info,problem+solution,build}.md
+├── components.json  package.json  tsconfig.json  next.config.ts  postcss.config.mjs  vercel.json
+└── README.md  CONTRIBUTING.md  SECURITY.md  LICENSE.md
 ```
-
----
 
 ## 6. TypeSafe Jev Integration Code Specifications
 
@@ -653,55 +640,35 @@ To guarantee that the demo video and live judges' test clicks run with 100% stab
 
 ---
 
-## 8. Vercel Deployment & Step-by-Step CLI Execution
+## 8. Vercel Deployment & CLI Execution (as executed)
 
-The user's project is already authenticated on Vercel at `https://vercel.com/eugene-gabriel/next-step-hacks-2026`.
+Project: [https://vercel.com/eugene-gabriel/next-step-hacks-2026](https://vercel.com/eugene-gabriel/next-step-hacks-2026) · CLI authenticated as `gabrielkenya` (team `eugene-gabriel`).
 
-### Step 1: Initialize Next.js 15 Project with Shadcn UI
 ```bash
-npx create-next-app@latest . \
-  --typescript \
-  --tailwind \
-  --eslint \
-  --app \
-  --src-dir=false \
-  --import-alias="@/*" \
-  --use-pnpm \
-  --yes
-```
+# 1. Dependencies (pnpm 11, Node 24/26)
+pnpm install
+pnpm add tw-animate-css geist          # shadcn v4 animations + Geist fonts (bundled, no Google Fonts fetch)
 
-### Step 2: Initialize Shadcn UI CLI
-```bash
-pnpm dlx shadcn@latest init -d
-```
-*(Selects Zinc base color, CSS variables, and Lucide icons automatically).*
-
-### Step 3: Install Required Shadcn Components
-```bash
-pnpm dlx shadcn@latest add \
-  button badge card alert sheet tabs slider progress \
-  dialog select separator tooltip scroll-area table chart
-```
-
-### Step 4: Install Core Dependencies
-```bash
-pnpm add @typesafe-ai/sdk recharts maplibre-gl lucide-react clsx tailwind-merge
-pnpm add -D @types/maplibre-gl
-```
-
-### Step 5: Link and Deploy to Vercel
-```bash
-# Link local repository to the existing Vercel project
+# 2. Link + project settings
 vercel link --project next-step-hacks-2026 --yes
+vercel project update next-step-hacks-2026 --framework nextjs --node-version 24.x --yes
 
-# Push local TYPESAFE_API_KEY to Vercel environment
-vercel env add TYPESAFE_API_KEY production
+# 3. Environment variables (Production, Preview, Development)
+printf "%s" "$TYPESAFE_API_KEY" | vercel env add TYPESAFE_API_KEY production preview development
+vercel env add NEXT_PUBLIC_APP_URL production preview development   # https://pyroshieldai.codewitheugene.top
+# optional, enables live NASA satellite ingestion:
+# vercel env add FIRMS_MAP_KEY production preview development
 
-# Deploy production build
-vercel --prod
+# 4. Custom domain (already attached; DNS is on Cloudflare, proxied CNAME → Vercel)
+vercel domains add pyroshieldai.codewitheugene.top next-step-hacks-2026
+
+# 5. Verify locally, then ship
+pnpm build && node scripts/smoke-test.mjs http://localhost:3000
+vercel --prod --yes
+node scripts/smoke-test.mjs https://pyroshieldai.codewitheugene.top
 ```
 
----
+**Africa's Talking callback URL to paste into the USSD channel:** `https://pyroshieldai.codewitheugene.top/api/ussd` (method POST, form-encoded). Backup: `https://next-step-hacks-2026.vercel.app/api/ussd`.
 
 ## 9. Verification & Quality Assurance Checklist
 
