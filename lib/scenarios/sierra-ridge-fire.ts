@@ -1,0 +1,102 @@
+import { WildfireIncident } from "@/lib/types/incident";
+
+export const sierraRidgeFire: WildfireIncident = {
+  id: "wf-sierra-ridge-2026",
+  name: "Sierra Ridge Fire",
+  incident_number: "WF-2026-CAL-042",
+  location_name: "El Dorado National Forest Foothills, CA",
+  center_lat: 38.7296,
+  center_lng: -120.7985,
+  zoom: 13,
+  acres_burned: 3450,
+  containment_pct: 35,
+  spread_rate_mph: 1.4,
+  spread_azimuth_deg: 45, // NE
+  fuel_model: "Ponderosa timber understory (TU1, TL3)",
+  terrain_summary: "Rolling foothills 15-25% slope; narrow ridge roads with canopy overhang",
+  perimeter_polygon: [
+    [38.715, -120.82],
+    [38.74, -120.81],
+    [38.745, -120.78],
+    [38.725, -120.77],
+    [38.71, -120.79],
+  ],
+  hotspots: [
+    { id: "hs-301", latitude: 38.735, longitude: -120.795, frp_mw: 165.0, confidence: 94, satellite: "VIIRS_NOAA20", acquisition_time: "2026-09-19T07:10:00Z" },
+    { id: "hs-302", latitude: 38.722, longitude: -120.805, frp_mw: 74.3, confidence: 81, satellite: "MODIS_AQUA", acquisition_time: "2026-09-19T06:58:00Z" },
+  ],
+  weather: {
+    wind_speed_mph: 18.0,
+    wind_direction_degrees: 220, // SW -> pushes NE
+    gusts_mph: 26.0,
+    relative_humidity_pct: 19.0,
+    ambient_temp_f: 86.0,
+    fuel_moisture_pct: 7.5,
+    red_flag_active: false,
+  },
+  assets: [
+    { id: "ast-senior-center", name: "Oak Valley Senior Living Community", type: "senior_care", latitude: 38.745, longitude: -120.775, distance_miles: 1.4, occupancy: 210, defensibility_status: "threatened" },
+    { id: "ast-homes", name: "Ridge Crest Residential Interface (800 Homes)", type: "residential_cluster", latitude: 38.752, longitude: -120.79, distance_miles: 1.9, occupancy: 2100, defensibility_status: "defensible" },
+  ],
+  routes: [
+    {
+      id: "rt-ridge-trail",
+      name: "Ridge Crest Mountain Road",
+      points: [
+        [38.72, -120.81],
+        [38.73, -120.79],
+        [38.745, -120.78],
+      ],
+      isImpassable: false,
+      hazardScore: 0,
+      confidence: 0,
+      chokepointDesc: "Narrow 2-lane mountain road threatened by burning canopy overhanging pavement",
+      statusBadge: "PENDING",
+      source: "baseline",
+      canyon_topography: "rolling_foothills",
+    },
+    {
+      id: "rt-state-route-49",
+      name: "State Route 49 Foothill Corridor",
+      points: [
+        [38.71, -120.83],
+        [38.725, -120.84],
+        [38.75, -120.83],
+      ],
+      isImpassable: false,
+      hazardScore: 0,
+      confidence: 0,
+      chokepointDesc: "Highway clear, defensible barrier established",
+      statusBadge: "PENDING",
+      source: "baseline",
+      canyon_topography: "open_valley",
+    },
+  ],
+  reports: [
+    { id: "rep-301", timestamp: "12 min ago", latitude: 38.732, longitude: -120.792, text: "Heavy smoke drifting into Oak Valley senior center, need buses for evacuation.", reporterName: "Facility Administrator", channel: "web" },
+  ],
+  shelter: {
+    name: "Placerville Fairgrounds Evacuation Center",
+    address: "100 Placerville Dr, Placerville, CA",
+    capacity: 2500,
+    latitude: 38.735,
+    longitude: -120.85,
+    amenities: ["ADA accessible", "Medical needs shelter wing", "Livestock staging", "Red Cross staffed"],
+  },
+  available_resources: [
+    "Type 3 Wildland Engine Strike Team (5 engines)",
+    "Type 1 Structural Engine Strike Team (5 engines)",
+    "Paratransit Evacuation Buses (6 buses, lift-equipped)",
+    "Type 2 Helicopter (bucket drops)",
+    "D-6 Bulldozer (1 dozer)",
+  ],
+  timelineData: [
+    { hour: "T-4h", acres: 800, frp_mw: 45, spread_rate: 0.6 },
+    { hour: "T-3h", acres: 1400, frp_mw: 80, spread_rate: 0.9 },
+    { hour: "T-2h", acres: 2200, frp_mw: 115, spread_rate: 1.1 },
+    { hour: "T-1h", acres: 2900, frp_mw: 140, spread_rate: 1.3 },
+    { hour: "Now", acres: 3450, frp_mw: 165, spread_rate: 1.4 },
+    { hour: "+1h", acres: 4100, frp_mw: 190, spread_rate: 1.6 },
+    { hour: "+2h", acres: 4800, frp_mw: 220, spread_rate: 1.8 },
+  ],
+};

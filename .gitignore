@@ -1,0 +1,8 @@
+.vercel
+.env*
+.claude-flow
+node_modules
+.claude/
+.next/
+next-env.d.ts
+*.tsbuildinfo

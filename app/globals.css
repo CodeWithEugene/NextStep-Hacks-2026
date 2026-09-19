@@ -1,0 +1,255 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------ */
+/* shadcn/ui theme tokens — Zinc base, tactical dark palette (HSL)     */
+/* https://ui.shadcn.com/docs/theming                                  */
+/* ------------------------------------------------------------------ */
+:root {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 6.5%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 6.5%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 14.3 95.8% 53.1%; /* Emergency Fire Orange #F97316 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 84.2% 60.2%; /* Hazard Red #EF4444 */
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 14.3 95.8% 53.1%;
+  --radius: 0.5rem;
+
+  /* Official shadcn chart tokens */
+  --chart-1: 14.3 95.8% 53.1%; /* Fire Orange */
+  --chart-2: 0 84.2% 60.2%; /* Severe Red */
+  --chart-3: 47.9 95.8% 53.1%; /* Warning Amber */
+  --chart-4: 142.1 76.2% 36.3%; /* Safe Green */
+  --chart-5: 198.6 88.7% 48.4%; /* Wind Vector Blue */
+}
+
+/* Tailwind v4 <-> shadcn token bridge */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    overflow-x: hidden;
+    min-height: 100dvh;
+  }
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Accessibility engine                                                */
+/* ------------------------------------------------------------------ */
+.high-contrast {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 4%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 4%;
+  --border: 0 0% 55%;
+  --input: 0 0% 55%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 88%;
+  --secondary: 0 0% 14%;
+  --accent: 0 0% 18%;
+  --primary: 22 100% 58%;
+  --destructive: 0 100% 62%;
+  --ring: 60 100% 50%;
+}
+.high-contrast .text-zinc-400,
+.high-contrast .text-zinc-500 {
+  color: hsl(0 0% 88%) !important;
+}
+.high-contrast .border-zinc-800,
+.high-contrast .border-zinc-800\/80,
+.high-contrast .border-zinc-800\/60,
+.high-contrast .border-zinc-800\/50 {
+  border-color: hsl(0 0% 55%) !important;
+}
+
+/* Font scaling: root rem scaling flows through every Tailwind size */
+.font-scale-large {
+  font-size: 125%;
+}
+.font-scale-xlarge {
+  font-size: 150%;
+}
+
+/* Reduced motion (manual toggle + OS preference) */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Tactical animations                                                 */
+/* ------------------------------------------------------------------ */
+@keyframes fire-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.8));
+  }
+}
+@keyframes perimeter-march {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+@keyframes hotspot-halo {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+.animate-fire-pulse {
+  animation: fire-pulse 2.4s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/* Leaflet tactical GIS skin (CartoDB Dark Matter basemap)             */
+/* ------------------------------------------------------------------ */
+.leaflet-container {
+  background: #09090b;
+  font-family: inherit;
+  outline: none;
+}
+.leaflet-container a.leaflet-control-attribution,
+.leaflet-control-attribution {
+  background: rgba(9, 9, 11, 0.75) !important;
+  color: #71717a !important;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-top-left-radius: 6px;
+}
+.leaflet-control-attribution a {
+  color: #a1a1aa !important;
+}
+.leaflet-tooltip.pyro-tooltip {
+  background: #09090b;
+  border: 1px solid #27272a;
+  color: #e4e4e7;
+  border-radius: 6px;
+  font-size: 11px;
+  padding: 4px 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+.leaflet-tooltip.pyro-tooltip::before {
+  border-top-color: #27272a;
+}
+.fire-perimeter {
+  animation: perimeter-march 1.4s linear infinite, fire-pulse 2.4s ease-in-out infinite;
+}
+.hotspot-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hotspot-halo 2.2s ease-out infinite;
+}
+.route-impassable {
+  animation: perimeter-march 1s linear infinite;
+}
+.pyro-marker {
+  background: transparent;
+  border: none;
+}
+
+/* Mobile safe areas */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.bottom-safe {
+  bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Print: ICS-209 dossier */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0;
+    background: white;
+    color: black;
+    padding: 24px;
+  }
+}
