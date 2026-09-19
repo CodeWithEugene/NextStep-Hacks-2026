@@ -1,18 +1,32 @@
-# PyroShield AI 🛡️🔥
-### Autonomous Wildfire Tactical Defense & Semantic Evacuation Intelligence
-**NextStep Hacks 2026 — *Earth Forward* Grand Prize Contender**
+<p align="center">
+  <a href="https://pyroshieldai.codewitheugene.top"><img src="https://img.shields.io/badge/PyroShield-AI-%23f97316?style=for-the-badge&logo=firefox&logoColor=%23f97316" alt="PyroShield AI"/></a>
+</p>
 
-[![NextStep Hacks 2026](https://img.shields.io/badge/NextStep_Hacks-2026_Earth_Forward-16a34a?style=for-the-badge)](https://nextstep2026.devpost.com/)
-[![TypeSafe Jev AI](https://img.shields.io/badge/Powered_by-TypeSafe_Jev_AI-f97316?style=for-the-badge)](https://typesafe.ai)
-[![Shadcn UI](https://img.shields.io/badge/UI-shadcn%2Fui-000000?style=for-the-badge)](https://ui.shadcn.com/)
-[![Vercel Deployed](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel)](https://pyroshieldai.codewitheugene.top)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE.md)
+<h1 align="center">PyroShield AI 🛡️🔥</h1>
+<h3 align="center">Autonomous Wildfire Tactical Defense &amp; Semantic Evacuation Intelligence</h3>
+<p align="center"><strong>NextStep Hacks 2026 — <em>Earth Forward</em> Grand Prize Contender</strong></p>
 
-> **Live Production Application:** [https://pyroshieldai.codewitheugene.top](https://pyroshieldai.codewitheugene.top)  
-> **Backup Vercel URL:** [https://next-step-hacks-2026.vercel.app](https://next-step-hacks-2026.vercel.app)  
-> **USSD Emergency Shortcode Callback:** `https://pyroshieldai.codewitheugene.top/api/ussd`  
-> **Devpost Challenge:** [NextStep Hacks 2026 (Devpost #30878)](https://nextstep2026.devpost.com/)  
-> **Host Organization:** [HackAlphaX](https://devpost.com/hackathons?organization=HackAlphaX)
+<p align="center">
+  <a href="https://nextstep2026.devpost.com/"><img src="https://img.shields.io/badge/NextStep_Hacks-2026_Earth_Forward-16a34a?style=for-the-badge" alt="NextStep Hacks 2026"/></a>
+  <a href="https://typesafe.ai"><img src="https://img.shields.io/badge/Powered_by-TypeSafe_Jev_AI-f97316?style=for-the-badge" alt="TypeSafe Jev AI"/></a>
+  <a href="https://ui.shadcn.com/"><img src="https://img.shields.io/badge/UI-shadcn%2Fui-000000?style=for-the-badge" alt="Shadcn UI"/></a>
+  <a href="https://pyroshieldai.codewitheugene.top"><img src="https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel Deployed"/></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License: MIT"/></a>
+</p>
+
+<div align="center">
+
+**🟢 Live Production Application:** [https://pyroshieldai.codewitheugene.top](https://pyroshieldai.codewitheugene.top)
+
+**🔵 Backup Vercel URL:** [https://next-step-hacks-2026.vercel.app](https://next-step-hacks-2026.vercel.app)
+
+**📟 USSD Emergency Shortcode Callback:** `https://pyroshieldai.codewitheugene.top/api/ussd`
+
+**🏆 Devpost Challenge:** [NextStep Hacks 2026 (Devpost #30878)](https://nextstep2026.devpost.com/)
+
+**🏛️ Host Organization:** [HackAlphaX](https://devpost.com/hackathons?organization=HackAlphaX)
+
+</div>
 
 ---
 
