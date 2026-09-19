@@ -670,28 +670,65 @@ node scripts/smoke-test.mjs https://pyroshieldai.codewitheugene.top
 
 **Africa's Talking callback URL to paste into the USSD channel:** `https://pyroshieldai.codewitheugene.top/api/ussd` (method POST, form-encoded). Backup: `https://next-step-hacks-2026.vercel.app/api/ussd`.
 
-## 9. Verification & Quality Assurance Checklist
+## 9. Verification & Quality Assurance Checklist (executed 2026-09-19)
 
-Before recording the demo video and submitting to Devpost:
+- [x] **TypeSafe Jev integration** — `pnpm build` passes; `node scripts/smoke-test.mjs` returns **12/12 PASS** locally and **12/12 PASS** against `https://pyroshieldai.codewitheugene.top`. Every answer is typed (`noul`, `score` + 5-level `probabilities`, `choice` + `confidence`), served by `jev-1.13.0`, and labeled `source: "jev"`.
+  | Check (production) | Result | Jev latency |
+  | :--- | :--- | :--- |
+  | Noul: credible downwind motorist report | `verified` noul = 0.71 | 370 ms |
+  | Noul: backyard BBQ smoke (should reject) | `unverified` noul = 0.12 | 151 ms |
+  | Score: County Route 4 vs. Pine Crest bypass (one request) | CR-4 **IMPASSABLE L5** 3.54 · bypass **CLEAR L1** 0.02 | 149 ms |
+  | Choice: action + priority asset + posture | Escorted Evacuation Convoy → residential estates · IMMEDIATE MANDATORY EVACUATION | 167 ms |
+  | Chat: intent + referenced route | `route_safety`, `rt-cr4` | 202 ms |
+  | Chat: immediate-danger Noul ("flames behind my house") | 0.98 → reply escalates to 911 | 152 ms |
+  | USSD menu 2: live corridor scoring on a feature phone | `END ROADS (Jev live)` … 127 chars | ~430 ms round trip |
+  | USSD menu 3: caller report verified by Noul | `Jev match: 74% VERIFIED` | ~430 ms round trip |
+- [x] **Authentic shadcn/ui** — 15 primitives under `components/ui/*` (Radix + Tailwind v4 + `tw-animate-css`), Zinc tokens bridged through `@theme inline`, `chart.tsx` rebuilt for Recharts 3 (`TooltipContentProps`), charts inside `ChartContainer`.
+- [x] **Mobile responsiveness** — verified at 375 × 812: full-bleed map, bottom action bar, shadcn `Sheet` drawer with Tabs, floating chat + accessibility buttons clear of the action bar, all dialogs open and close. Verified at 1440 × 900: 8/4 desktop grid with sticky Jev sidebar and desktop Tabs.
+- [x] **Live interactive map** — Leaflet on Esri Dark Gray Canvas (terrain toggle to OpenTopoMap); pending corridors render slate-dashed and flip to red/green as Jev scores land; perimeter projects along the spread azimuth with the timeline Slider; hotspots pulse; asset, shelter and report pins carry tooltips.
+- [x] **ICS-209 export** — Dialog with header + blocks 12/28/29/30/31/32/33/47, copy-to-clipboard, `.md` download, print stylesheet.
+- [x] **Accessibility** — high-contrast tokens, 125 % / 150 % root font scaling, Web Speech TTS of the live alert sentence, reduced-motion class plus `prefers-reduced-motion`, `aria-live` banner, skip link, labelled controls, 44 px touch targets on mobile.
+- [x] **Vercel production** — framework preset set to Next.js, Node 24, env vars `TYPESAFE_API_KEY` + `NEXT_PUBLIC_APP_URL` on all environments, deployed with `vercel --prod`; `https://pyroshieldai.codewitheugene.top` and `https://next-step-hacks-2026.vercel.app` both return HTTP 200 over HTTPS.
 
-- [ ] **TypeSafe Jev Integration:**
-  - All 3 API routes (`/api/jev/verify`, `/api/jev/corridor`, `/api/jev/dispatch`) respond in `< 800ms`.
-  - Jev answers return valid typed probabilities without string formatting errors.
-- [ ] **Authentic Shadcn UI:**
-  - All components use official `@/components/ui/*` primitives.
-  - Colors and dark theme follow Shadcn Zinc variables.
-  - Recharts render smoothly within `ChartContainer`.
-- [ ] **Mobile Responsiveness:**
-  - Tested on simulated iPhone 15 Pro (`393 x 852px`) and iPad Air (`820 x 1180px`).
-  - Mobile bottom sheet opens/closes cleanly without covering map zoom controls.
-- [ ] **Live Interactive Map:**
-  - Fire perimeter polygon renders with animated pulse effect.
-  - Evacuation route switches from Green to Red when Jev scores road as impassable.
-  - Safe alternate route automatically recalculates and highlights in bright green.
-- [ ] **ICS-209 Report Export:**
-  - Clicking "Export ICS-209" opens a clean modal containing the standardized incident summary ready for print or clipboard copy.
-- [ ] **Vercel Production Deployment:**
-  - Live URL loads without 500 errors and supports HTTPS.
+---
+
+## 10. Build Execution Log, Jev Audit & Remaining Actions
+
+### 10.1 Decisions made during execution (and why)
+| Decision | Reason |
+| :--- | :--- |
+| Leaflet + Esri Dark Gray instead of CARTO Dark Matter | CARTO now watermarks keyless tiles "API KEY REQUIRED"; Esri Canvas and OpenTopoMap are keyless with attribution. |
+| Pine Ridge scenario moved from Van Nuys to San Gabriel Canyon (Hwy 39 / Azusa) | On a real basemap the original coordinates sat on flat urban land, contradicting the canyon narrative. |
+| Routes start `PENDING` and the pipeline auto-runs 0.7 s after load or scenario switch | Judges see corridors turn red/green from live Jev output without hunting for a button; the button remains for re-runs. |
+| All corridors scored in one Jev request; dispatch asks three Choices in one request | Follows TypeSafe guidance to ask independent questions over the same state together; halves round trips. |
+| Chat replies are composed by code from live state; Jev only classifies intent, referenced route and danger | Zero hallucinated road statuses. |
+| Every Jev response carries `source`, `model`, `latencyMs`; fallbacks are deterministic heuristics | Judges can see what is live; the console never goes blank if the network drops. |
+| USSD menus call Jev under a 3.5 s per-call budget and screens are capped at 182 chars | Africa's Talking gateway timeout and USSD screen limits. |
+| `geist` npm package instead of Google Fonts | Fonts bundle at build time; no external fetch during Vercel builds. |
+
+### 10.2 Jev audit of the finished build (`jev-1.13.0`, one request)
+| Question | Answer |
+| :--- | :--- |
+| Originality (0–4 rubric) | **2.87** — "rare combination of ideas" (p = 0.80) |
+| Completion (0–4 rubric) | **1.95** — "works end-to-end with minor gaps" (p = 0.63) |
+| Technology wow (0–4 rubric) | **3.31** — "impressive multi-system integration" (p = 0.69), 31 % "exceptional" |
+| Uses Jev as a genuine System One primitive? | Noul **0.91** yes |
+| Fits Earth Forward? | Noul **0.82** yes |
+| Risk judges feel misled about live vs simulated? | Noul **0.26** (low) |
+| Biggest remaining risk to a 1st-place finish | **USSD channel registration** (0.55), then FIRMS live key (0.21), persistence (0.19) |
+
+### 10.3 Two five-minute actions only the account owner can do
+1. **Register the USSD channel** in the Africa's Talking dashboard (sandbox or live): create a USSD channel, set the callback to `https://pyroshieldai.codewitheugene.top/api/ussd`, method POST. Until then, the in-app simulator exercises the identical payload contract.
+2. **Enable live NASA FIRMS ingestion**: request a free MAP_KEY at `https://firms.modaps.eosdis.nasa.gov/api/map_key/`, run `vercel env add FIRMS_MAP_KEY production preview development`, redeploy. The FIRMS route and map already handle the live path.
+
+### 10.4 Local commands
+```bash
+pnpm dev                                   # http://localhost:3000
+pnpm build && pnpm start                   # production build
+pnpm typecheck                             # tsc --noEmit
+pnpm smoke                                 # node scripts/smoke-test.mjs http://localhost:3000
+node scripts/smoke-test.mjs https://pyroshieldai.codewitheugene.top
+```
 
 ---
 

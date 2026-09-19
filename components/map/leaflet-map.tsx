@@ -61,11 +61,13 @@ const BASEMAPS: Record<Basemap, { layers: () => L.TileLayer[] }> = {
   },
 };
 
-function incidentBounds(incident: WildfireIncident, routes: EvacuationRoute[]) {
+/** Bounds from the scenario's own geometry (live route state can lag one render behind a scenario switch). */
+function incidentBounds(incident: WildfireIncident) {
   const pts: L.LatLngExpression[] = [
     ...incident.perimeter_polygon,
-    ...routes.flatMap((r) => r.points),
+    ...incident.routes.flatMap((r) => r.points),
     ...incident.assets.map((a) => [a.latitude, a.longitude] as [number, number]),
+    [incident.shelter.latitude, incident.shelter.longitude],
   ];
   return L.latLngBounds(pts);
 }
@@ -88,6 +90,8 @@ export default function LeafletMap({
   const basemapGroup = useRef<L.LayerGroup | null>(null);
   const callbacks = useRef({ onSelectRoute, onSelectAsset });
   callbacks.current = { onSelectRoute, onSelectAsset };
+  const boundsRef = useRef<L.LatLngBounds | null>(null);
+  const sizedRef = useRef(false);
 
   // Initialise the map once.
   useEffect(() => {
@@ -110,7 +114,16 @@ export default function LeafletMap({
     };
     mapRef.current = map;
 
-    const ro = new ResizeObserver(() => map.invalidateSize({ animate: false }));
+    // Refit once the container has a real size: dynamic import + hydration can
+    // hand Leaflet a 0x0 box on first paint, which produces a wrong zoom.
+    const ro = new ResizeObserver(() => {
+      map.invalidateSize({ animate: false });
+      const size = map.getSize();
+      if (!sizedRef.current && size.x > 50 && size.y > 50 && boundsRef.current) {
+        sizedRef.current = true;
+        map.fitBounds(boundsRef.current, { padding: [28, 28], animate: false });
+      }
+    });
     ro.observe(el);
 
     return () => {
@@ -134,12 +147,17 @@ export default function LeafletMap({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const bounds = incidentBounds(incident, routes);
-    map.fitBounds(bounds, { padding: [28, 28], animate: false });
+    const bounds = incidentBounds(incident);
+    boundsRef.current = bounds;
+    const size = map.getSize();
+    if (size.x > 50 && size.y > 50) {
+      sizedRef.current = true;
+      map.fitBounds(bounds, { padding: [28, 28], animate: false });
+    }
     onReady?.({
       zoomIn: () => map.zoomIn(0.5),
       zoomOut: () => map.zoomOut(0.5),
-      reset: () => map.fitBounds(incidentBounds(incident, routes), { padding: [28, 28] }),
+      reset: () => map.fitBounds(incidentBounds(incident), { padding: [28, 28] }),
       focusRoute: (route) => map.fitBounds(L.latLngBounds(route.points), { padding: [60, 60], maxZoom: 14 }),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

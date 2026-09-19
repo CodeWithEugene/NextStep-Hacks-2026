@@ -88,11 +88,11 @@ PyroShield AI leverages **TypeSafe's Jev model (`jev-latest`)** as its foundatio
 ```
 
 1. **Incident Ground-Truth Verification (`Noul`):**  
-   Cross-references chaotic citizen 911 reports against real-time satellite thermal coordinates and downwind vectors (`noul=0.61`), eliminating false alarms and hoax reports.
+   Cross-references citizen, dispatch and USSD reports against satellite hotspot proximity, downwind alignment and wind. In live tests a motorist's spot-fire report verifies at `noul=0.71` while a backyard BBQ report is rejected at `noul=0.12`.
 2. **Evacuation Corridor Risk Scoring (`Score`):**  
-   Scores roadway segments on a 5-level risk rubric. A score $\ge 3.5$ (e.g. `3.99 / 4.0`, Level 5 Impassable) triggers automated road closure and routes traffic away from hazard zones.
+   Scores every corridor in a single request on a 5-level rubric. An expected score $\ge 3.0$ (Level 4+, e.g. `3.54 / 4.0` for County Route 4) turns the road red on the map and reroutes traffic to the verified clear corridor (`0.02 / 4.0`).
 3. **Tactical Resource Allocation (`Choice`):**  
-   Arbitrates between high-value competing assets (e.g. 500kV electrical substation vs. local school), selecting optimal containment strategies (`air_tanker_retardant_drop`, 88% confidence).
+   Three Choices in one request: primary tactical action, priority asset (e.g. elementary school vs. 500 kV substation), and protective-action posture (mandatory evacuation / phased warning / shelter in place).
 
 ---
 
@@ -104,10 +104,10 @@ PyroShield AI leverages **TypeSafe's Jev model (`jev-latest`)** as its foundatio
 | **Micro-Weather** | **Open-Meteo & NOAA HRRR** | Real-time hourly wind speed, wind gusts, wind azimuth (0–360°), relative humidity, and air temperature. |
 | **Topography** | **USGS 3DEP Elevation API** | Calculates terrain slope percentage and canyon chimney acceleration vectors. |
 | **Semantic AI** | **TypeSafe Jev SDK (`@typesafe-ai/sdk`)** | Sub-second System One decision engine for `Noul`, `Score`, and `Choice` primitives. |
-| **UI Framework** | **Next.js 15 (App Router) + shadcn/ui** | Authentic Shadcn Zinc dark theme, Radix UI headless components, Recharts telemetry charts. |
-| **Mapping Engine** | **MapLibre GL & Leaflet** | CartoDB Dark Matter tiles, vector perimeter polygons, hotspot clusters, animated wind vectors. |
+| **UI Framework** | **Next.js 16 (App Router, Turbopack) + shadcn/ui** | Authentic shadcn Zinc dark theme on Tailwind v4, Radix UI headless components, Recharts 3 telemetry charts, Geist fonts. |
+| **Mapping Engine** | **Leaflet 1.9** | Esri Dark Gray Canvas basemap (OpenTopoMap terrain toggle), time-projected perimeter polygon, FRP-scaled hotspots, red/green corridors, asset + shelter + report pins. |
 | **Telecom / USSD** | **Africa's Talking API** | GSM USSD interactive menu callback (`/api/ussd`) for non-smartphone emergency access. |
-| **Cloud Hosting** | **Vercel Edge Platform** | Production deployment on `pyroshieldai.codewitheugene.top`. |
+| **Cloud Hosting** | **Vercel (Fluid Compute, Node 24)** | Production deployment on `pyroshieldai.codewitheugene.top`; `vercel --prod` from the CLI. |
 
 ---
 
@@ -177,8 +177,8 @@ Disasters occur under conditions of extreme stress, thick blinding smoke, power 
 ## 💻 Local Development & Setup
 
 ### Prerequisites
-* **Node.js:** v18.0.0 or higher (v20+ recommended)
-* **pnpm:** v9+ or v11+ (or npm / yarn)
+* **Node.js:** v20 or higher (v24 used in production)
+* **pnpm:** v11 (`corepack enable` or `npm i -g pnpm`)
 * **TypeSafe API Key:** Set in environment as `TYPESAFE_API_KEY`
 
 ### 1. Clone the Repository
@@ -219,6 +219,19 @@ pnpm start
 | :--- | :--- | :---: | :--- |
 | `TYPESAFE_API_KEY` | TypeSafe AI production API key for Jev model inference | **Yes** | Server-Side Only (`app/api/*`) |
 | `NEXT_PUBLIC_APP_URL` | Public base URL of the deployment | **Yes** | Public (`client + server`) |
+| `FIRMS_MAP_KEY` | Free NASA FIRMS map key for live VIIRS hotspot ingestion (`/api/firms`); cached scenario hotspots are served without it | No | Server-Side Only |
+
+---
+
+## ✅ Verification
+
+```bash
+pnpm build                                              # Next.js 16 production build, TypeScript strict
+node scripts/smoke-test.mjs http://localhost:3000       # 12 end-to-end checks (Jev, USSD, weather, FIRMS)
+node scripts/smoke-test.mjs https://pyroshieldai.codewitheugene.top
+```
+
+Latest production run: **12/12 PASS**, all Jev answers served live by `jev-1.13.0` in 150–370 ms. Full evidence, decisions and the Jev audit of the build are in [docs/build.md](docs/build.md) §9–10.
 
 ---
 
